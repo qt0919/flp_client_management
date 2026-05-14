@@ -30,13 +30,14 @@ function save(key, data) {
 // Call once on app mount. Pulls all tables from Supabase into localStorage.
 // If Supabase is unavailable the app keeps working from localStorage cache.
 export async function syncFromSupabase() {
+  if (!supabase) return false
   try {
     const [leads, activities, followups, folders, templates] = await Promise.all([
-      supabase.from('leads').select('*'),
-      supabase.from('activities').select('*'),
-      supabase.from('followups').select('*'),
-      supabase.from('template_folders').select('*'),
-      supabase.from('templates').select('*'),
+      supabase?.from('leads').select('*'),
+      supabase?.from('activities').select('*'),
+      supabase?.from('followups').select('*'),
+      supabase?.from('template_folders').select('*'),
+      supabase?.from('templates').select('*'),
     ])
     if (leads.data?.length)      save(KEY_LEADS,      leads.data)
     if (activities.data?.length) save(KEY_ACTIVITIES,  activities.data)
@@ -61,7 +62,7 @@ export function createLead(data) {
   const leads = load(KEY_LEADS)
   const lead = { id: uid(), created_at: now(), updated_at: now(), ...data }
   save(KEY_LEADS, [lead, ...leads])
-  supabase.from('leads').insert(lead).then()
+  supabase?.from('leads').insert(lead).then()
   return lead
 }
 export function updateLead(id, data) {
@@ -70,14 +71,14 @@ export function updateLead(id, data) {
     l.id === id ? { ...l, ...data, updated_at } : l
   )
   save(KEY_LEADS, leads)
-  supabase.from('leads').update({ ...data, updated_at }).eq('id', id).then()
+  supabase?.from('leads').update({ ...data, updated_at }).eq('id', id).then()
   return leads.find(l => l.id === id)
 }
 export function deleteLead(id) {
   save(KEY_LEADS, load(KEY_LEADS).filter(l => l.id !== id))
   save(KEY_ACTIVITIES, load(KEY_ACTIVITIES).filter(a => a.lead_id !== id))
   save(KEY_FOLLOWUPS,  load(KEY_FOLLOWUPS).filter(f => f.lead_id !== id))
-  supabase.from('leads').delete().eq('id', id).then()
+  supabase?.from('leads').delete().eq('id', id).then()
 }
 
 // ─── ACTIVITIES ─────────────────────────────────────────────────────────────
@@ -91,12 +92,12 @@ export function createActivity(data) {
   const item = { id: uid(), created_at: now(), activity_date: now(), ...data }
   save(KEY_ACTIVITIES, [item, ...items])
   updateLead(data.lead_id, { last_contacted_at: item.activity_date })
-  supabase.from('activities').insert(item).then()
+  supabase?.from('activities').insert(item).then()
   return item
 }
 export function deleteActivity(id) {
   save(KEY_ACTIVITIES, load(KEY_ACTIVITIES).filter(a => a.id !== id))
-  supabase.from('activities').delete().eq('id', id).then()
+  supabase?.from('activities').delete().eq('id', id).then()
 }
 
 // ─── FOLLOWUPS ──────────────────────────────────────────────────────────────
@@ -110,7 +111,7 @@ export function createFollowUp(data) {
   const items = load(KEY_FOLLOWUPS)
   const item = { id: uid(), created_at: now(), status: 'pending', ...data }
   save(KEY_FOLLOWUPS, [item, ...items])
-  supabase.from('followups').insert(item).then()
+  supabase?.from('followups').insert(item).then()
   return item
 }
 export function updateFollowUp(id, data) {
@@ -118,12 +119,12 @@ export function updateFollowUp(id, data) {
     f.id === id ? { ...f, ...data } : f
   )
   save(KEY_FOLLOWUPS, items)
-  supabase.from('followups').update(data).eq('id', id).then()
+  supabase?.from('followups').update(data).eq('id', id).then()
   return items.find(f => f.id === id)
 }
 export function deleteFollowUp(id) {
   save(KEY_FOLLOWUPS, load(KEY_FOLLOWUPS).filter(f => f.id !== id))
-  supabase.from('followups').delete().eq('id', id).then()
+  supabase?.from('followups').delete().eq('id', id).then()
 }
 
 // ─── HOT LEAD AUTOPILOT ──────────────────────────────────────────────────────
@@ -203,7 +204,7 @@ export function createTemplate(data) {
   const items = load(KEY_TEMPLATES)
   const item = { id: uid(), created_at: now(), ...data }
   save(KEY_TEMPLATES, [item, ...items])
-  supabase.from('templates').insert(item).then()
+  supabase?.from('templates').insert(item).then()
   return item
 }
 export function updateTemplate(id, data) {
@@ -211,11 +212,11 @@ export function updateTemplate(id, data) {
     t.id === id ? { ...t, ...data } : t
   )
   save(KEY_TEMPLATES, items)
-  supabase.from('templates').update(data).eq('id', id).then()
+  supabase?.from('templates').update(data).eq('id', id).then()
 }
 export function deleteTemplate(id) {
   save(KEY_TEMPLATES, load(KEY_TEMPLATES).filter(t => t.id !== id))
-  supabase.from('templates').delete().eq('id', id).then()
+  supabase?.from('templates').delete().eq('id', id).then()
 }
 
 // ─── TEMPLATE FOLDERS ────────────────────────────────────────────────────────
@@ -226,13 +227,13 @@ export function createFolder(name) {
   const folders = load(KEY_FOLDERS)
   const folder = { id: uid(), created_at: now(), name }
   save(KEY_FOLDERS, [...folders, folder])
-  supabase.from('template_folders').insert(folder).then()
+  supabase?.from('template_folders').insert(folder).then()
   return folder
 }
 export function updateFolder(id, name) {
   const folders = load(KEY_FOLDERS).map(f => f.id === id ? { ...f, name } : f)
   save(KEY_FOLDERS, folders)
-  supabase.from('template_folders').update({ name }).eq('id', id).then()
+  supabase?.from('template_folders').update({ name }).eq('id', id).then()
 }
 export function deleteFolder(id) {
   save(KEY_FOLDERS, load(KEY_FOLDERS).filter(f => f.id !== id))
@@ -240,7 +241,7 @@ export function deleteFolder(id) {
     t.folder_id === id ? { ...t, folder_id: null } : t
   )
   save(KEY_TEMPLATES, templates)
-  supabase.from('template_folders').delete().eq('id', id).then()
+  supabase?.from('template_folders').delete().eq('id', id).then()
   // Supabase cascade sets folder_id = null via ON DELETE SET NULL
 }
 
