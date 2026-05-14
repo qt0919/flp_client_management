@@ -118,12 +118,12 @@ alter table followups         enable row level security;
 alter table template_folders  enable row level security;
 alter table templates         enable row level security;
 
--- Allow all operations for authenticated users (solo agent, single account)
-create policy "auth_all_leads"            on leads             for all using (auth.role() = 'authenticated');
-create policy "auth_all_activities"       on activities         for all using (auth.role() = 'authenticated');
-create policy "auth_all_followups"        on followups          for all using (auth.role() = 'authenticated');
-create policy "auth_all_template_folders" on template_folders   for all using (auth.role() = 'authenticated');
-create policy "auth_all_templates"        on templates          for all using (auth.role() = 'authenticated');
+-- Allow all operations via the anon key (app has its own password gate)
+create policy "anon_all_leads"            on leads             for all using (true) with check (true);
+create policy "anon_all_activities"       on activities         for all using (true) with check (true);
+create policy "anon_all_followups"        on followups          for all using (true) with check (true);
+create policy "anon_all_template_folders" on template_folders   for all using (true) with check (true);
+create policy "anon_all_templates"        on templates          for all using (true) with check (true);
 
 -- ─── SEED: Default WhatsApp Templates ───────────────────────────────────────
 insert into templates (name, category, market, body) values

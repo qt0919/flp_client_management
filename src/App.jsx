@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -11,8 +12,14 @@ import FollowUps from './pages/FollowUps'
 import Templates from './pages/Templates'
 import Reports from './pages/Reports'
 import Tools from './pages/Tools'
+import { syncFromSupabase } from './lib/store'
+import { isLoggedIn } from './lib/auth'
 
 export default function App() {
+  useEffect(() => {
+    // Pull latest data from Supabase into local cache when app loads (if logged in)
+    if (isLoggedIn()) syncFromSupabase()
+  }, [])
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
